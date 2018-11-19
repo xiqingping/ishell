@@ -41,6 +41,7 @@ var (
 type Shell struct {
 	rootCmd           *Cmd
 	generic           func(*Context)
+	postFunc          func(*Context)
 	interrupt         func(*Context, int, string)
 	interruptCount    int
 	eof               func(*Context)
@@ -270,6 +271,9 @@ func (s *Shell) handleCommand(str []string) (bool, error) {
 	}
 	c := newContext(s, cmd, args)
 	cmd.Func(c)
+	if s.postFunc != nil {
+		s.postFunc(c)
+	}
 	return true, c.err
 }
 
@@ -639,6 +643,10 @@ func (s *Shell) IgnoreCase(ignore bool) {
 // ProgressBar returns the progress bar for the shell.
 func (s *Shell) ProgressBar() ProgressBar {
 	return s.progressBar
+}
+
+func (s *Shell) SetPostFunc(f func(*Context)) {
+	s.postFunc = f
 }
 
 func newContext(s *Shell, cmd *Cmd, args []string) *Context {
